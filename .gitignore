@@ -5,3 +5,4 @@
 kernel/lib/
 kernel/bin/
 OVMFbin/
+*.code-workspace
