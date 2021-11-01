@@ -1,9 +1,23 @@
 #include "interrupts.h"
 #include "types.h"
-#include "terminal.h"
+#include "panic.h"
 
-__attribute__((interrupt)) void pagefault_handler(struct interrupt_frame *frame)
+#include <stdint.h>
+
+__attribute__((interrupt)) void int_handler_pagefault(struct interrupt_frame *frame)
 {
-    terminal_println("PAGE FAULT!");
+    panic("page fault detected");
+    while(true);
+}
+
+__attribute__((interrupt)) void int_handler_double_fault(struct interrupt_frame *frame)
+{
+    panic("double fault detected");
+    while(true);
+}
+
+__attribute__((interrupt)) void int_handler_general_protection(struct interrupt_frame *frame)
+{
+    panic("general protection fault detected");
     while(true);
 }

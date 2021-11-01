@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <stdint.h>
+
 #define MAX_NUM_IDT_ENTRIES 256
 #define IDT_FLAGS_INTERRUPT_GATE    0b10001110
 #define IDT_FLAGS_CALL_GATE         0b10001100

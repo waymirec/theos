@@ -5,6 +5,8 @@
 #include "memory.h"
 #include "bitmap.h"
 
+#include <stdint.h>
+
 void pageframe_allocator_init(memory_info_t *memory_info);
 bool pageframe_free(void *address);
 void pageframe_nfree(void *address, size_t page_count);

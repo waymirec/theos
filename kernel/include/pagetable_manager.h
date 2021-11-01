@@ -3,6 +3,8 @@
 #include "boot.h"
 #include "types.h"
 
+#include <stdint.h>
+
 typedef struct mapping_table {
     uint64_t entries[512];
 }__attribute__((packed,aligned(4096))) mapping_table_t;

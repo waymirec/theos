@@ -1,6 +1,8 @@
 #include "string.h"
 #include "types.h"
 
+#include <stddef.h>
+
 #define MAX_DBL_PRECISION 15
 #define DEC_BASE 10
 #define HEX_BASE 16

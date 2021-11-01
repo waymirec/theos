@@ -3,6 +3,7 @@
 #include "math.h"
 #include "terminal.h"
 
+#include <stdint.h>
 #include <stdarg.h>
 
 #define FONT_HEIGHT 16
@@ -15,7 +16,6 @@ unsigned int _color;
 unsigned int _bytes_per_pixel;
 bool _enabled = true;
 
-void newline();
 void scroll();
 
 void terminal_init(framebuffer_t *framebuffer, psf1_font_t *font)
@@ -44,7 +44,7 @@ void terminal_put_char(const char chr)
 {
     if (!_enabled) return;
     if (chr == '\n') {
-        newline();
+        terminal_newline();
         return;
     }
 
@@ -60,7 +60,7 @@ void terminal_put_char(const char chr)
 
     _cursor_pos.x += FONT_WIDTH;
     if (_cursor_pos.x >= _framebuffer->horizontal_resolution) {
-        newline();
+        terminal_newline();
     }
 }
 
@@ -132,7 +132,7 @@ void terminal_enable()
     _enabled = true;
 }
 
-void newline()
+void terminal_newline()
 {
     _cursor_pos.x = 0;
     _cursor_pos.y += FONT_HEIGHT;

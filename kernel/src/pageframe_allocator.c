@@ -1,4 +1,5 @@
 #include "pageframe_allocator.h"
+#include <stddef.h>
 
 #define PAGE(address) ((uint64_t)address / PAGE_SIZE)
 #define ADDRESS(index) ((void *)(i * PAGE_SIZE))

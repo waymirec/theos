@@ -4,6 +4,9 @@
 #include "efimem.h"
 #include "types.h"
 
+#include <stdint.h>
+#include <stddef.h>
+
 typedef struct {
     void *base_address;
     size_t buffer_size;

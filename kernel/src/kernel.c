@@ -11,6 +11,8 @@
 #include "idt.h"
 #include "interrupts.h"
 
+#include <stdint.h>
+
 pml4_t *g_pml4;
 
 void initialize_kernel(boot_info_t *boot_info);
@@ -27,9 +29,6 @@ void _start(boot_info_t *boot_info)
     initialize_kernel(boot_info);
     display_banner(boot_info);
 
-    //asm("int 0x0E");
-    //terminal_clear(0x00FF0000);
-    
     loop();
 }
 

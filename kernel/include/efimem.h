@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <stdint.h>
+
 typedef struct {
     uint32_t type;
     void *physical_address;
