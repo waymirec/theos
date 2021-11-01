@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"efimem.h": "c",
+			"math.h": "c",
+			"memory.h": "c",
+			"font.h": "c",
+			"types.h": "c",
+			"bitmap.h": "c",
+			"pageframe_allocator.h": "c"
+		},
+		"C_Cpp.default.includePath": [
+			"/home/waymirec/code/theos/kernel/include"
+		]
+	}
+}
