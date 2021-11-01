@@ -28,8 +28,8 @@ void _start(boot_info_t *boot_info)
     display_banner(boot_info);
 
     //asm("int 0x0E");
-
-    terminal_clear(0x00FF0000);
+    //terminal_clear(0x00FF0000);
+    
     loop();
 }
 
