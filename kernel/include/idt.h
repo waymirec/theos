@@ -31,3 +31,4 @@ typedef struct {
 
 extern void load_idt(idt_descriptor_t *idt_descriptor);
 void idt_init();
+void set_idt_gate(void *handler, uint8_t offset, uint8_t selector, uint8_t flags);

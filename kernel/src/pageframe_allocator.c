@@ -15,10 +15,10 @@ extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 // private functions
-void reserve_page(void *address);
-void reserve_pages(void *address, size_t page_count);
-void unreserve_page(void *address);
-void unreserve_pages(void *address, size_t page_count);
+static void __reserve_page(void *address);
+static void __reserve_pages(void *address, size_t page_count);
+static void __unreserve_page(void *address);
+static void __unreserve_pages(void *address, size_t page_count);
 
 void pageframe_allocator_init(memory_info_t *memory_info)
 {
@@ -46,14 +46,14 @@ void pageframe_allocator_init(memory_info_t *memory_info)
     bitmap_init(&_bitmap, bitmap_size, largest_free_seg);
     _bitmap_index = (uint64_t)largest_free_seg / PAGE_SIZE;
 
-    reserve_pages(0, (total_system_memory / PAGE_SIZE) + 1);
+    __reserve_pages(0, (total_system_memory / PAGE_SIZE) + 1);
     for (int i=0; i < entries; i++) {
         efi_memory_descriptor_t *desc = (efi_memory_descriptor_t *)((uint64_t)memory_info->memory_map + (i * memory_info->memory_map_descriptor_size));
         if (desc->type == EFI_CONVENTIONAL_MEMORY_TYPE_INDEX) {
-            unreserve_pages(desc->physical_address, desc->page_count);
+            __unreserve_pages(desc->physical_address, desc->page_count);
         }
     }
-    reserve_pages(0, 0x100);
+    __reserve_pages(0, 0x100);
 
     // lock kernel pages
     uint64_t kernel_size = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
@@ -140,8 +140,7 @@ uint64_t pageframe_memory_reserved(void)
     return _memory_reserved;
 }
 
-//--PRIVATE FUNCTIONS--------------------------------------------------------------------------------
-void reserve_page(void *address)
+static void __reserve_page(void *address)
 {
     uint64_t page = PAGE(address);
     if (bitmap_check(&_bitmap, page) == true) return;
@@ -150,15 +149,15 @@ void reserve_page(void *address)
     _memory_reserved += PAGE_SIZE;
 }
 
-void reserve_pages(void *address, size_t page_count)
+static void __reserve_pages(void *address, size_t page_count)
 {
     for (int i = 0; i < page_count; i++)
     {
-        reserve_page((void *)((uint64_t)address + (i * PAGE_SIZE)));
+        __reserve_page((void *)((uint64_t)address + (i * PAGE_SIZE)));
     }
 }
 
-void unreserve_page(void *address)
+static void __unreserve_page(void *address)
 {
     uint64_t page = PAGE(address);
     if (bitmap_check(&_bitmap, page) == false) return;
@@ -167,10 +166,10 @@ void unreserve_page(void *address)
     _memory_reserved -= PAGE_SIZE;
 }
 
-void unreserve_pages(void *address, size_t page_count)
+static void __unreserve_pages(void *address, size_t page_count)
 {
     for (int i = 0; i < page_count; i++)
     {
-        unreserve_page((void *)((uint64_t)address + (i * PAGE_SIZE)));
+        __unreserve_page((void *)((uint64_t)address + (i * PAGE_SIZE)));
     }
 }

@@ -12,19 +12,23 @@
 framebuffer_t *_framebuffer;
 psf1_font_t *_font;
 point_t _cursor_pos;
-unsigned int _color;
+unsigned int _fgcolor;
+unsigned int _bgcolor;
 unsigned int _bytes_per_pixel;
 bool _enabled = true;
 
-void scroll();
+static void __put_char(const char chr, point_t *pos);
+static void __clear_char(point_t *pos);
+static void __scroll();
 
 void terminal_init(framebuffer_t *framebuffer, psf1_font_t *font)
 {
     _framebuffer = framebuffer;
     _font = font;
     _bytes_per_pixel = 4;
-    _color = 0xFFFFFFFF;
-    terminal_clear(0x00000000);
+    _fgcolor = 0xFFFFFFFF;
+    _bgcolor = 0x00000000;
+    terminal_clear();
 }
 
 void terminal_put_pixel(unsigned int x, unsigned int y, unsigned int color)
@@ -48,15 +52,7 @@ void terminal_put_char(const char chr)
         return;
     }
 
-    char *fontPtr = (char *)_font->glyph_buffer + (chr * _font->header->char_size); // index of glyph within glyph array
-    for (unsigned long y = _cursor_pos.y; y < _cursor_pos.y + FONT_HEIGHT; y++) {
-        for (unsigned long x = _cursor_pos.x; x < _cursor_pos.x + FONT_WIDTH; x++) {
-            if ((*fontPtr & (0b10000000 >> (x - _cursor_pos.x))) > 0) {
-                terminal_put_pixel(x, y, _color);
-            }
-        }
-        fontPtr++;
-    }
+   __put_char(chr, &_cursor_pos);
 
     _cursor_pos.x += FONT_WIDTH;
     if (_cursor_pos.x >= _framebuffer->horizontal_resolution) {
@@ -106,16 +102,27 @@ void terminal_move_cursor(unsigned int x, unsigned int y)
     _cursor_pos.y = y <= _framebuffer->vertical_resolution ? y : _framebuffer->vertical_resolution;
 }
 
-void terminal_set_color(unsigned int color)
+void terminal_set_fgcolor(unsigned int color)
 {
-    _color = color;
+    _fgcolor = color;
 }
 
-void terminal_clear(unsigned int color)
+void terminal_set_bgcolor(unsigned int color)
+{
+    _bgcolor = color;
+}
+
+void terminal_set_color(unsigned int fgcolor, unsigned int bgcolor)
+{
+    _fgcolor = fgcolor;
+    _bgcolor = bgcolor;
+}
+
+void terminal_clear()
 {
     for(int y=0; y<=_framebuffer->vertical_resolution; y++) {
         for(int x=0; x<=_framebuffer->horizontal_resolution; x++) {
-            terminal_put_pixel(x, y, color);
+            terminal_put_pixel(x, y, _bgcolor);
         }
     }
 
@@ -139,11 +146,47 @@ void terminal_newline()
 
     if (_cursor_pos.y >= _framebuffer->vertical_resolution) {
         _cursor_pos.y =_framebuffer->vertical_resolution - FONT_HEIGHT;
-        scroll();
+        __scroll();
     }
 }
 
-void scroll()
+void terminal_backspace()
+{
+    if (_cursor_pos.x < FONT_WIDTH && _cursor_pos.y < FONT_HEIGHT) return;
+
+    if (_cursor_pos.x < FONT_WIDTH) {
+        _cursor_pos.x = _framebuffer->horizontal_resolution - FONT_WIDTH;
+        _cursor_pos.y -= FONT_HEIGHT;
+    } else {
+        _cursor_pos.x -= FONT_WIDTH;
+    }
+
+    __clear_char(&_cursor_pos);
+}
+
+static void __put_char(const char chr, point_t *pos)
+{
+    char *fontPtr = (char *)_font->glyph_buffer + (chr * _font->header->char_size); // index of glyph within glyph array
+    for (unsigned long y = pos->y; y < pos->y + FONT_HEIGHT; y++) {
+        for (unsigned long x = pos->x; x < pos->x + FONT_WIDTH; x++) {
+            if ((*fontPtr & (0b10000000 >> (x - pos->x))) > 0) {
+                terminal_put_pixel(x, y, _fgcolor);
+            }
+        }
+        fontPtr++;
+    }
+}
+
+static void __clear_char(point_t *pos)
+{
+    for (unsigned long y = pos->y; y < pos->y + FONT_HEIGHT; y++) {
+        for (unsigned long x = pos->x; x < pos->x + FONT_WIDTH; x++) {
+            terminal_put_pixel(x, y, _bgcolor);
+        }
+    }
+}
+
+static void __scroll()
 {
     for(int y=FONT_HEIGHT; y<=_framebuffer->vertical_resolution; y++) {
         for(int x=0; x<=_framebuffer->horizontal_resolution; x++) {

@@ -7,7 +7,7 @@ LDS = kernel.ld
 CC = gcc
 LD = ld
 
-CFLAGS = -masm=intel -ffreestanding -fshort-wchar -I./include
+CFLAGS = -masm=intel -mno-red-zone -ffreestanding -fshort-wchar -I./include
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
 ASMC = nasm
@@ -30,7 +30,7 @@ DIRS = $(wildcard $(SRCDIR)/*)
 
 kernel: $(OBJS) link
 
-$(OBJDIR)/interrupts.o: $(SRCDIR)/interrupts.c
+$(OBJDIR)/interrupt_handlers.o: $(SRCDIR)/interrupt_handlers.c
 	@ echo !==== COMPILING %^
 	@ mkdir -p $(@D)
 	$(CC) -masm=intel -mno-red-zone -mgeneral-regs-only -ffreestanding -I./include -c $^ -o $@
@@ -63,6 +63,11 @@ buildimg:
 	mcopy -i $(BUILDDIR)/$(OSNAME).img startup.nsh ::
 	mcopy -i $(BUILDDIR)/$(OSNAME).img $(BUILDDIR)/kernel.elf ::
 	mcopy -i $(BUILDDIR)/$(OSNAME).img $(FONTSDIR)/zap-light16.psf ::
+
+clean:
+	@find ./ -type f -name "*.o" -exec rm -rf {} \;
+
+all: clean kernel buildimg
 
 run:
 	qemu-system-x86_64 -drive file=$(BUILDDIR)/$(OSNAME).img -m 512M -cpu qemu64 -drive if=pflash,format=raw,unit=0,file="$(OVMFDIR)/OVMF_CODE-pure-efi.fd",readonly=on -drive if=pflash,format=raw,unit=1,file="$(OVMFDIR)/OVMF_VARS-pure-efi.fd" -net none
