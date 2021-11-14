@@ -1,16 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "pci.h"
-
-#define	SATA_SIG_ATA	0x00000101	// SATA drive
-#define	SATA_SIG_ATAPI	0xEB140101	// SATAPI drive
-#define	SATA_SIG_SEMB	0xC33C0101	// Enclosure management bridge
-#define	SATA_SIG_PM	    0x96690101	// Port multiplier
-
-#define HBA_PORT_IPM_ACTIVE 1
-#define HBA_PORT_DET_PRESENT 3
 
 typedef enum {
     AHCI_DEVICE_TYPE_NULL = 0,
@@ -323,4 +316,12 @@ typedef struct {
     hba_mem_t *abar;
 } ahci_driver_t;
 
+typedef struct {
+    hba_port_t *hba_port;
+    AHCI_DEVICE_TYPE type;
+    uint8_t *buffer;
+    uint8_t portnum;
+} ahci_port_t;
+
 void ahci_init(ahci_driver_t *driver, pci_device_hdr_t *pci_base_address);
+bool ahci_read(ahci_port_t *port, uint64_t sector, uint32_t sector_count, void *buffer);

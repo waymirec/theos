@@ -100,14 +100,10 @@ static bool __expand(size_t length)
 static bool __combine_next(heap_hdr_t *segment)
 {
     if (segment->next == NULL || !segment->next->free) return false;
-
     if (segment->next == _last_segment) _last_segment = segment;
-
+    if (segment->next->next != NULL) segment->next->next->prev = segment;
     segment->length += (segment->next->length + sizeof(heap_hdr_t));
-    if (segment->next->next != NULL) {
-        segment->next->next->prev = segment;
-        segment->next = segment->next->next;
-    }
+    segment->next = segment->next->next;
 
     return true;
 }
