@@ -39,15 +39,17 @@ typedef struct {
     Framebuffer *framebuffer;
     PSF1_FONT *font;
     MemoryInfo *memoryInfo;
+    void *rootSystemDescriptionPointer;
 } BootInfo;
 
-EFI_FILE* LoadFile(EFI_FILE* directory, CHAR16* path, EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE* systemTable);
-PSF1_FONT* LoadPSF1Font(EFI_FILE* directory, CHAR16* path, EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE* systemTable);
-int VerifyKernelFormat(Elf64_Ehdr* header);
-int memcmp(const void *string1, const void *string2, size_t length);
+EFI_FILE* LoadFile(EFI_FILE *, CHAR16 *, EFI_HANDLE, EFI_SYSTEM_TABLE *);
+PSF1_FONT* LoadPSF1Font(EFI_FILE *, CHAR16 *, EFI_HANDLE, EFI_SYSTEM_TABLE *);
+int VerifyKernelFormat(Elf64_Ehdr *);
+int memcmp(const void *, const void *, size_t);
 Framebuffer* InitializeGop();
-MemoryInfo* GetMemoryInfo(EFI_SYSTEM_TABLE *systemTable);
-MemoryInfo* GetMemoryInfo2();
+MemoryInfo* GetMemoryInfo(EFI_SYSTEM_TABLE *);
+void* GetRootSystemDescriptor(EFI_SYSTEM_TABLE *);
+UINTN strcmp(CHAR8 *, CHAR8 *, UINTN);
 
 EFI_STATUS efi_main (EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable) {
     InitializeLib(imageHandle, systemTable);
@@ -116,12 +118,13 @@ EFI_STATUS efi_main (EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable) {
     Framebuffer *framebuffer = InitializeGop();
 
     MemoryInfo *memoryInfo = GetMemoryInfo(systemTable);
-    //MemoryInfo *memoryInfo = GetMemoryInfo2();
+    void *rsdp = GetRootSystemDescriptor(systemTable);
 
     BootInfo bootInfo;
     bootInfo.framebuffer = framebuffer;
     bootInfo.font = font;
     bootInfo.memoryInfo = memoryInfo;
+    bootInfo.rootSystemDescriptionPointer = rsdp;
 
     systemTable->BootServices->ExitBootServices(imageHandle, memoryInfo->memoryMapKey);
 
@@ -245,15 +248,6 @@ Framebuffer* InitializeGop()
 
 }
 
-MemoryInfo* GetMemoryInfo2()
-{
-    LibMemoryMap(&g_memoryInfo.memoryMapSize, 
-                 &g_memoryInfo.memoryMapKey,
-                 &g_memoryInfo.memoryMapDescriptorSize,
-                 &g_memoryInfo.memoryMapDescriptorVersion);
-    return &g_memoryInfo;
-}
-
 MemoryInfo* GetMemoryInfo(EFI_SYSTEM_TABLE *systemTable)
 {
     EFI_MEMORY_DESCRIPTOR  *memoryMap = NULL;
@@ -272,4 +266,28 @@ MemoryInfo* GetMemoryInfo(EFI_SYSTEM_TABLE *systemTable)
     g_memoryInfo.memoryMapDescriptorVersion = memoryMapDescriptorVersion;
 
     return &g_memoryInfo;
+}
+
+void* GetRootSystemDescriptor(EFI_SYSTEM_TABLE *systemTable)
+{
+    EFI_CONFIGURATION_TABLE *configTable = systemTable->ConfigurationTable;
+    EFI_GUID acpi20TableGuid = ACPI_20_TABLE_GUID;
+
+    void *rsdp = NULL;
+    for (UINTN i = 0; i < systemTable->NumberOfTableEntries; i++,configTable++) {
+        if (CompareGuid(&configTable[i].VendorGuid, &acpi20TableGuid)) {
+            if (strcmp((CHAR8 *)"RSD PTR ", (CHAR8 *)configTable->VendorTable, 8)) {
+                rsdp = (void *)configTable->VendorTable;
+            }
+        }
+    }
+    return rsdp;
+}
+
+UINTN strcmp(CHAR8 *a, CHAR8 *b, UINTN length)
+{
+    for (UINTN i = 0; i < length; i++) {
+        if (*a != *b) return 0;
+    }
+    return 1;
 }

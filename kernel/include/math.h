@@ -1,6 +1,6 @@
 #pragma once
 
 typedef struct {
-    unsigned int x;
-    unsigned int y;
+    int x;
+    int y;
 } point_t;

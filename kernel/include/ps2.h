@@ -34,15 +34,18 @@
 #define PS2_CMD_ENABLE_DATA_REPORTING 0xF4
 #define PS2_CMD_DISABLE_DATA_REPORTING 0xF5
 
-typedef struct {
-    bool        y_overflow      : 1;              // y-axis overflow
-    bool        x_overflow      : 1;              // x-axis overflow
-    bool        y_negative      : 1;              // y value negative
-    bool        x_negative      : 1;              // x value negative
-    bool        reserved_0      : 1;              // always 1
-    bool        middle_button   : 1;              // middle button pressed
-    bool        right_button    : 1;              // right button pressed
-    bool        left_button     : 1;              // left button pressed
-    uint8_t     x_data;                           // motion units since last padcket
-    uint8_t     y_data;                           // motion units since last packet
-} __attribute__((packed)) mouse_data_s;
+typedef union {
+    struct {
+        bool        left_button     : 1;              // left button pressed
+        bool        right_button    : 1;              // right button pressed
+        bool        middle_button   : 1;              // middle button pressed
+        bool        reserved_0      : 1;              // always 1
+        bool        x_negative      : 1;              // x value negative
+        bool        y_negative      : 1;              // y value negative
+        bool        x_overflow      : 1;              // x-axis overflow
+        bool        y_overflow      : 1;              // y-axis overflow
+        uint8_t     x_data;                           // motion units since last padcket
+        uint8_t     y_data;                           // motion units since last packet
+    };
+    uint8_t bytes[3];
+} mouse_data;

@@ -4,12 +4,12 @@
 #define PAGE(address) ((uint64_t)address / PAGE_SIZE)
 #define ADDRESS(index) ((void *)(i * PAGE_SIZE))
 
-uint64_t _memory_free;
-uint64_t _memory_reserved;
-uint64_t _memory_used;
-bool _initialized;
-bitmap_t _bitmap;
-uint64_t _bitmap_index;
+static uint64_t _memory_free;
+static uint64_t _memory_reserved;
+static uint64_t _memory_used;
+static bool _initialized;
+static bitmap_t _bitmap;
+static uint64_t _bitmap_index;
 
 extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;

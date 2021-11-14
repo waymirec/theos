@@ -5,10 +5,6 @@
 #include "terminal.h"
 #include "string.h"
 
-void __process_control_keys(uint8_t);
-bool __is_capitalized();
-char __translate_scancode(uint8_t, bool);
-
 #define MAX_PRINTABLE_SCANCODE 57
 #define SPACE_PRESSED 0x39
 #define LSHIFT_PRESSED 0x2A
@@ -20,12 +16,12 @@ char __translate_scancode(uint8_t, bool);
 #define BSPACE_PRESSED 0x0E
 #define BSPACE_RELEASED 0x8E
 
-bool _lshift_pressed = false;
-bool _rshift_pressed = false;
-bool _bspace_pressed = false;
-bool _capslock_pressed = false;
+static bool _lshift_pressed = false;
+static bool _rshift_pressed = false;
+static bool _bspace_pressed = false;
+static bool _capslock_pressed = false;
 
-const char _ascii_table[] = {
+static const char _ascii_table[] = {
          0 ,  0 , '1', '2',
         '3', '4', '5', '6',
         '7', '8', '9', '0',
@@ -42,6 +38,10 @@ const char _ascii_table[] = {
         '.', '/',  0 , '*',
          0 , ' '
 };
+
+static void __process_control_keys(uint8_t);
+static bool __is_capitalized();
+static char __translate_scancode(uint8_t, bool);
 
 void kbd_handle_input(uint8_t scancode)
 {
@@ -60,7 +60,7 @@ void kbd_handle_input(uint8_t scancode)
     terminal_put_char(ascii);
 }
 
-void __process_control_keys(uint8_t scancode)
+static void __process_control_keys(uint8_t scancode)
 {
     switch(scancode) {
         case CAPSLOCK_PRESSED:
@@ -87,7 +87,7 @@ void __process_control_keys(uint8_t scancode)
     }
 }
 
-bool __is_capitalized()
+static bool __is_capitalized()
 {
     bool caps = false;
     if (_capslock_pressed) caps = true;
@@ -95,14 +95,14 @@ bool __is_capitalized()
     return caps;
 }
 
-bool __ignore_caps(uint8_t scancode)
+static bool __ignore_caps(uint8_t scancode)
 {
     //todo: replace with array search
     if (scancode == SPACE_PRESSED) return true;
     return false;
 }
 
-char __translate_scancode(uint8_t scancode, bool caps)
+static char __translate_scancode(uint8_t scancode, bool caps)
 {
     if (scancode > MAX_PRINTABLE_SCANCODE) return 0;
     if (_ascii_table[scancode] == 0) return 0;

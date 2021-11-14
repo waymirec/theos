@@ -17,6 +17,7 @@ void idt_init()
     set_idt_gate(int_handler_general_protection, 0x0D, 0x08, IDT_FLAGS_INTERRUPT_GATE);
     set_idt_gate(int_handler_keyboard, 0x21, 0x08, IDT_FLAGS_INTERRUPT_GATE);
     set_idt_gate(int_handler_mouse, 0x2C, 0x08, IDT_FLAGS_INTERRUPT_GATE);
+    set_idt_gate(int_handler_pit, 0x20, 0x08, IDT_FLAGS_INTERRUPT_GATE);
 
     load_idt(&_idtr);
 }

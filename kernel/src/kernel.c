@@ -1,3 +1,7 @@
+#include "kernel.h"
+
+#include <stdint.h>
+
 #include "types.h"
 #include "terminal.h"
 #include "font.h"
@@ -12,18 +16,20 @@
 #include "8259_pic.h"
 #include "io.h"
 #include "ps2_mouse.h"
-
-#include <stdint.h>
-
-pml4_t *g_pml4;
+#include "acpi.h"
+#include "pci.h"
+#include "heap.h"
+#include "pit.h"
 
 void initialize_kernel(boot_info_t *boot_info);
 void setup_terminal(boot_info_t *boot_info);
 void setup_paging(boot_info_t *boot_info);
-void setup_interrupts();
+void setup_interrupts(void);
+void setup_acpi(boot_info_t *boot_info);
 void display_banner(boot_info_t *boot_info);
 void loop();
 
+pml4_t *g_pml4 = NULL;
 char terminal_buffer[128];
 
 void _start(boot_info_t *boot_info)
@@ -38,11 +44,14 @@ void initialize_kernel(boot_info_t *boot_info)
 {
     setup_terminal(boot_info);
     setup_paging(boot_info);
+    heap_init((void *)0x0000100000000000, 0x10);
     gdt_init();
     setup_interrupts();
     ps2_mouse_init();
+    setup_acpi(boot_info);
+    pit_init(100); // 100hz == 100 ticks / second
 
-    outb(PIC1_DATA, 0b11111001);  // unmask keyboard (IRQ1) and cascade (IRQ2)
+    outb(PIC1_DATA, 0b11111000);  // unmask PIT (IRQ0), keyboard (IRQ1) and cascade (IRQ2)
     outb(PIC2_DATA, 0b11101111);  // unmask PS/2 aux (IRQ12)
     asm("sti");
 }
@@ -66,6 +75,14 @@ void setup_interrupts()
     pic_remap(0x20, 0x28);
 }
 
+void setup_acpi(boot_info_t *boot_info)
+{
+    acpi_sdt_header_t *xsdt = (acpi_sdt_header_t *)(boot_info->rootSystemDescriptionPointer->xsdt_address);
+    acpi_mcfg_header_t *mcfg = (acpi_mcfg_header_t *)acpi_find_table(xsdt, (char *)"MCFG");
+
+    pci_enumerate(mcfg);
+}
+
 void display_banner(boot_info_t *boot_info)
 {
     terminal_println("Welcome to theOS!");
@@ -76,5 +93,8 @@ void display_banner(boot_info_t *boot_info)
 
 void loop()
 {
-    while(true);
+    while(true) {
+        ps2_mouse_handle_input();
+        asm("hlt");
+    }
 }

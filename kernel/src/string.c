@@ -1,7 +1,9 @@
 #include "string.h"
-#include "types.h"
 
 #include <stddef.h>
+
+#include "types.h"
+#include "memory.h"
 
 #define MAX_DBL_PRECISION 15
 #define DEC_BASE 10
@@ -9,25 +11,6 @@
 
 char *HEX_DIGITS = "0123456789ABCDEF";
 
-int memcmp(const void *string1, const void *string2, size_t length)
-{
-    const unsigned char *s1 = string1, *s2 = string2;
-    for(size_t i = 0; i < length; i++)
-    {
-        if (s1[i] < s2[i]) return -1;
-        if (s1[i] > s2[i]) return 1;
-    }
-    return 0;
-}
-
-void * memcpy(void *dest, void *src, size_t len)
-{
-    char *d = dest;
-    const char *s = src;
-    while (len--)
-        *d++ = *s++;
-    return dest;
-}
 
 char* uint_to_string(uint64_t value, char *buffer)
 {
@@ -40,10 +23,9 @@ char* uint_to_string(uint64_t value, char *buffer)
     }
 
     size_t remainder = value % DEC_BASE;
-    buffer[index] = remainder + '0';
-    size_t len = index + 1;
-    reverse(buffer, len);
-    buffer[len] = 0;
+    buffer[index++] = remainder + '0';
+    reverse(buffer, index);
+    buffer[index] = 0;
     return buffer;
 }
 
@@ -67,17 +49,18 @@ char* uint64_to_hex(uint64_t value, char *buffer)
         buffer[index++] = HEX_DIGITS[remainder];
     }
 
-    if (value > 0) buffer[index] = HEX_DIGITS[value];
+    if (value > 0) buffer[index++] = HEX_DIGITS[value];
 
-    for(int i=index; i <= 16 - index; i++)
+    uint8_t padding = 18 - index;
+    for(int i=0; i < padding; i++)
     {
-        buffer[++index] = '0';
+        buffer[index++] = '0';
     }
 
-    reverse(buffer+2, index+1-2);
+    reverse(buffer+2, index-2);
     buffer[0] = '0';
     buffer[1] = 'x';
-    buffer[index+1] = 0;
+    buffer[index] = 0;
     return buffer;
 }
 
@@ -91,17 +74,18 @@ char* uint32_to_hex(uint32_t value, char *buffer)
         buffer[index++] = HEX_DIGITS[remainder];
     }
 
-    if (value > 0) buffer[index] = HEX_DIGITS[value];
+    if (value > 0) buffer[index++] = HEX_DIGITS[value];
 
-    for(int i=index; i <= 8 - index; i++)
+    uint8_t padding = 10 - index;
+    for(int i=0; i < padding; i++)
     {
-        //buffer[++index] = '0';
+        buffer[index++] = '0';
     }
 
-    reverse(buffer+2, index+1-2);
+    reverse(buffer+2, index-2);
     buffer[0] = '0';
     buffer[1] = 'x';
-    buffer[index+1] = 0;
+    buffer[index] = 0;
     return buffer;
 }
 
@@ -115,17 +99,18 @@ char* uint16_to_hex(uint16_t value, char *buffer)
         buffer[index++] = HEX_DIGITS[remainder];
     }
 
-    if (value > 0) buffer[index] = HEX_DIGITS[value];
+    if (value > 0) buffer[index++] = HEX_DIGITS[value];
 
-    for(int i=index; i <= 4 - index; i++)
+    uint8_t padding = 6 - index;
+    for(int i=0; i < padding; i++)
     {
-        buffer[++index] = '0';
+        buffer[index++] = '0';
     }
 
-    reverse(buffer+2, index+1-2);
+    reverse(buffer+2, index-2);
     buffer[0] = '0';
     buffer[1] = 'x';
-    buffer[index+1] = 0;
+    buffer[index] = 0;
     return buffer;
 }
 
@@ -139,17 +124,18 @@ char* uint8_to_hex(uint8_t value, char *buffer)
         buffer[index++] = HEX_DIGITS[remainder];
     }
 
-    if (value > 0) buffer[index] = HEX_DIGITS[value];
+    if (value > 0) buffer[index++] = HEX_DIGITS[value];
 
-    for(int i=index; i <= 2 - index; i++)
+    uint8_t padding = 4 - index;
+    for(int i=0; i < padding; i++)
     {
-        buffer[++index] = '0';
+        buffer[index++] = '0';
     }
 
-    reverse(buffer+2, index+1-2);
+    reverse(buffer+2, index-2);
     buffer[0] = '0';
     buffer[1] = 'x';
-    buffer[index+1] = 0;
+    buffer[index] = 0;
     return buffer;
 }
 char* int_to_hex(int64_t value, char *buffer)
@@ -185,20 +171,9 @@ char* double_to_string(double value, uint8_t precision, char *buffer)
 
 void reverse(void *buffer, size_t len)
 {
-    if (len < 2) return;
-
-    char *buff = (char *)buffer;
-    size_t end = len-1;
-    size_t mid = end / 2;
-    if (mid == 0) mid = 1;
-    if (mid % 2 == 0) mid++;
-    char tmp;
-    for(int i=0; i<mid; i++)
-    {
-        tmp = buff[i];
-        buff[i] = buff[end-i];
-        buff[end-i] = tmp;
-    }
+    uint8_t tmp[len];
+    memrcpy((void *)tmp, buffer, len);
+    memcpy(buffer, tmp, len);
 }
 
 char * strcpy(char *dest, char *src)

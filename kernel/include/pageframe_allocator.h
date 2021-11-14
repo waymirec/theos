@@ -1,11 +1,12 @@
 #pragma once
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "paging.h"
 #include "types.h"
 #include "memory.h"
 #include "bitmap.h"
-
-#include <stdint.h>
 
 void pageframe_allocator_init(memory_info_t *memory_info);
 bool pageframe_free(void *address);

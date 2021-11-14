@@ -1,10 +1,12 @@
 #include "terminal.h"
-#include "types.h"
-#include "math.h"
-#include "terminal.h"
 
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdbool.h>
+
+#include "types.h"
+#include "math.h"
+#include "terminal.h"
 
 #define FONT_HEIGHT 16
 #define FONT_WIDTH 8
@@ -16,7 +18,8 @@ unsigned int _fgcolor;
 unsigned int _bgcolor;
 unsigned int _bytes_per_pixel;
 bool _enabled = true;
-
+uint32_t _overlay_buffer_pre[16 * 16];
+uint32_t _overlay_buffer_post[16 * 16];
 static void __put_char(const char chr, point_t *pos);
 static void __clear_char(point_t *pos);
 static void __scroll();
@@ -60,6 +63,12 @@ void terminal_put_char(const char chr)
     }
 }
 
+void terminal_put_string(const char *str, unsigned int length)
+{
+    for(int i = 0; i < length; i++)
+        terminal_put_char(*(str+i));
+}
+
 void terminal_print(const char *str)
 {
     for(const char *chr = str; *chr != 0; chr++)
@@ -98,8 +107,8 @@ void terminal_nprintln(size_t count, ...)
 
 void terminal_move_cursor(unsigned int x, unsigned int y)
 {
-    _cursor_pos.x = x <= _framebuffer->horizontal_resolution ? x : _framebuffer->horizontal_resolution;
-    _cursor_pos.y = y <= _framebuffer->vertical_resolution ? y : _framebuffer->vertical_resolution;
+    _cursor_pos.x = x <= _framebuffer->horizontal_resolution - FONT_WIDTH ? x : _framebuffer->horizontal_resolution - FONT_WIDTH;
+    _cursor_pos.y = y <= _framebuffer->vertical_resolution - FONT_HEIGHT ? y : _framebuffer->vertical_resolution - FONT_HEIGHT;
 }
 
 void terminal_set_fgcolor(unsigned int color)
@@ -162,6 +171,78 @@ void terminal_backspace()
     }
 
     __clear_char(&_cursor_pos);
+}
+
+void terminal_draw_overlay(uint8_t *data, point_t *pos, unsigned int color)
+{
+    int x_pad = _framebuffer->horizontal_resolution - pos->x;
+    int y_pad = _framebuffer->vertical_resolution - pos->y;
+    int width = x_pad > 16 ? 16 : x_pad;
+    int height = y_pad > 16 ? 16 : y_pad;
+
+    int max_x = _framebuffer->horizontal_resolution - 1;
+    int max_y = _framebuffer->vertical_resolution - 1;
+
+    int x = pos->x;
+    if (x > max_x) x = max_x;
+    if (x < 0) x = 0;
+
+    int y = pos->y;
+    if (y > max_y) y = max_y;
+    if (y < 0) y = 0;
+
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            int byte = (i * 16 + j) / 8;
+            if ((data[byte] & (0b10000000 >> (j % 8)))) {
+                _overlay_buffer_pre[j + i * 16] = terminal_get_pixel(x + j, y + i);
+                terminal_put_pixel(x + j, y + i, color);
+                _overlay_buffer_post[j + i * 16] = color;
+            }
+        }
+    }
+}
+
+void terminal_clear_overlay(uint8_t *data, point_t *pos)
+{
+    int x_pad = _framebuffer->horizontal_resolution - pos->x;
+    int y_pad = _framebuffer->vertical_resolution - pos->y;
+    int width = x_pad > 16 ? 16 : x_pad;
+    int height = y_pad > 16 ? 16 : y_pad;
+
+    int max_x = _framebuffer->horizontal_resolution - 1;
+    int max_y = _framebuffer->vertical_resolution - 1;
+
+    int x = pos->x;
+    if (x > max_x) x = max_x;
+    if (x < 0) x = 0;
+
+    int y = pos->y;
+    if (y > max_y) y = max_y;
+    if (y < 0) y = 0;
+
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            int byte = (i * 16 + j) / 8;
+            if ((data[byte] & (0b10000000 >> (j % 8)))) {
+                int current_color = terminal_get_pixel(x + j, y + i);
+                if (current_color == _overlay_buffer_post[j + i * 16]) {
+                    int color = _overlay_buffer_pre[j + i * 16];
+                    terminal_put_pixel(x + j, y + i, color);
+                }
+            }
+        }
+    }
+}
+
+unsigned int terminal_vertical_resolution()
+{
+    return _framebuffer->vertical_resolution;
+}
+
+unsigned int terminal_horizontal_resolution()
+{
+    return _framebuffer->horizontal_resolution;
 }
 
 static void __put_char(const char chr, point_t *pos)

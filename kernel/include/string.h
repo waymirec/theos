@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-int memcmp(const void *s1, const void *s2, size_t n);
-void * memcpy(void *dest, void *src, size_t len);
 char * strcpy(char *dest, char *src);
 char* uint_to_string(uint64_t value, char *buffer);
 char* int_to_string(int64_t value, char *buffer);
