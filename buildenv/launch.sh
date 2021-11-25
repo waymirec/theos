@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run --rm -it -v $PWD:/root/env theos-buildenv
+docker run --rm -it -v $(pwd):/root/env -v $(pwd)/../theos-cc:/root/cc theos-buildenv

@@ -106,7 +106,7 @@ EFI_STATUS efi_main (EFI_HANDLE imageHandle, EFI_SYSTEM_TABLE *systemTable) {
 
     Print(L"Kernel Loaded.\n\r");
 
-    PSF1_FONT *font = LoadPSF1Font(NULL, L"zap-light16.psf", imageHandle, systemTable);
+    PSF1_FONT *font = LoadPSF1Font(NULL, L"console.psf", imageHandle, systemTable);
     if (font == NULL)
     {
         Print(L"ERROR: font is invalid or missing.\n\r");

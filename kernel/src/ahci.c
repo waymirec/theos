@@ -51,10 +51,11 @@ void ahci_init(ahci_driver_t *driver, pci_device_hdr_t *pci_base_address)
         memset(port->buffer, 0, PAGE_SIZE);
 
         ahci_read(port, 0, 4, port->buffer);
-        for (int i = 0; i < 1024; i++) {
-            terminal_put_char(port->buffer[i]);
-        }
-        terminal_newline();
+        
+        //for (int i = 0; i < 1024; i++) {
+        //    terminal_put_char(port->buffer[i]);
+        //}
+        //terminal_newline();
     }
 }
 

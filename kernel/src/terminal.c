@@ -8,12 +8,11 @@
 #include "math.h"
 #include "terminal.h"
 
-#define FONT_HEIGHT 16
-#define FONT_WIDTH 8
-
 framebuffer_t *_framebuffer;
 psf1_font_t *_font;
 point_t _cursor_pos;
+unsigned int _font_width;
+unsigned int _font_height;
 unsigned int _fgcolor;
 unsigned int _bgcolor;
 unsigned int _bytes_per_pixel;
@@ -31,6 +30,8 @@ void terminal_init(framebuffer_t *framebuffer, psf1_font_t *font)
     _bytes_per_pixel = 4;
     _fgcolor = 0xFFFFFFFF;
     _bgcolor = 0x00000000;
+    _font_width = 8;
+    _font_height = font->header->char_size;
     terminal_clear();
 }
 
@@ -57,7 +58,7 @@ void terminal_put_char(const char chr)
 
    __put_char(chr, &_cursor_pos);
 
-    _cursor_pos.x += FONT_WIDTH;
+    _cursor_pos.x += _font_width;
     if (_cursor_pos.x >= _framebuffer->horizontal_resolution) {
         terminal_newline();
     }
@@ -107,8 +108,8 @@ void terminal_nprintln(size_t count, ...)
 
 void terminal_move_cursor(unsigned int x, unsigned int y)
 {
-    _cursor_pos.x = x <= _framebuffer->horizontal_resolution - FONT_WIDTH ? x : _framebuffer->horizontal_resolution - FONT_WIDTH;
-    _cursor_pos.y = y <= _framebuffer->vertical_resolution - FONT_HEIGHT ? y : _framebuffer->vertical_resolution - FONT_HEIGHT;
+    _cursor_pos.x = x <= _framebuffer->horizontal_resolution - _font_width ? x : _framebuffer->horizontal_resolution - _font_width;
+    _cursor_pos.y = y <= _framebuffer->vertical_resolution - _font_height ? y : _framebuffer->vertical_resolution - _font_height;
 }
 
 void terminal_set_fgcolor(unsigned int color)
@@ -151,23 +152,23 @@ void terminal_enable()
 void terminal_newline()
 {
     _cursor_pos.x = 0;
-    _cursor_pos.y += FONT_HEIGHT;
+    _cursor_pos.y += _font_height;
 
     if (_cursor_pos.y >= _framebuffer->vertical_resolution) {
-        _cursor_pos.y =_framebuffer->vertical_resolution - FONT_HEIGHT;
+        _cursor_pos.y =_framebuffer->vertical_resolution - _font_height;
         __scroll();
     }
 }
 
 void terminal_backspace()
 {
-    if (_cursor_pos.x < FONT_WIDTH && _cursor_pos.y < FONT_HEIGHT) return;
+    if (_cursor_pos.x < _font_width && _cursor_pos.y < _font_height) return;
 
-    if (_cursor_pos.x < FONT_WIDTH) {
-        _cursor_pos.x = _framebuffer->horizontal_resolution - FONT_WIDTH;
-        _cursor_pos.y -= FONT_HEIGHT;
+    if (_cursor_pos.x < _font_width) {
+        _cursor_pos.x = _framebuffer->horizontal_resolution - _font_width;
+        _cursor_pos.y -= _font_height;
     } else {
-        _cursor_pos.x -= FONT_WIDTH;
+        _cursor_pos.x -= _font_width;
     }
 
     __clear_char(&_cursor_pos);
@@ -248,8 +249,8 @@ unsigned int terminal_horizontal_resolution()
 static void __put_char(const char chr, point_t *pos)
 {
     char *fontPtr = (char *)_font->glyph_buffer + (chr * _font->header->char_size); // index of glyph within glyph array
-    for (unsigned long y = pos->y; y < pos->y + FONT_HEIGHT; y++) {
-        for (unsigned long x = pos->x; x < pos->x + FONT_WIDTH; x++) {
+    for (unsigned long y = pos->y; y < pos->y + _font_height; y++) {
+        for (unsigned long x = pos->x; x < pos->x + _font_width; x++) {
             if ((*fontPtr & (0b10000000 >> (x - pos->x))) > 0) {
                 terminal_put_pixel(x, y, _fgcolor);
             }
@@ -260,8 +261,8 @@ static void __put_char(const char chr, point_t *pos)
 
 static void __clear_char(point_t *pos)
 {
-    for (unsigned long y = pos->y; y < pos->y + FONT_HEIGHT; y++) {
-        for (unsigned long x = pos->x; x < pos->x + FONT_WIDTH; x++) {
+    for (unsigned long y = pos->y; y < pos->y + _font_height; y++) {
+        for (unsigned long x = pos->x; x < pos->x + _font_width; x++) {
             terminal_put_pixel(x, y, _bgcolor);
         }
     }
@@ -269,13 +270,13 @@ static void __clear_char(point_t *pos)
 
 static void __scroll()
 {
-    for(int y=FONT_HEIGHT; y<=_framebuffer->vertical_resolution; y++) {
+    for(int y=_font_height; y<=_framebuffer->vertical_resolution; y++) {
         for(int x=0; x<=_framebuffer->horizontal_resolution; x++) {
             unsigned int p = terminal_get_pixel(x, y);
-            terminal_put_pixel(x, y-FONT_HEIGHT, p);
+            terminal_put_pixel(x, y-_font_height, p);
         }
     }
-    for(int y=_framebuffer->vertical_resolution - FONT_HEIGHT; y <= _framebuffer->vertical_resolution; y++) {
+    for(int y=_framebuffer->vertical_resolution - _font_height; y <= _framebuffer->vertical_resolution; y++) {
         for(int x=0; x<=_framebuffer->horizontal_resolution; x++) {
             terminal_put_pixel(x, y, 0x00000000);
         }

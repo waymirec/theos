@@ -1,6 +1,9 @@
 #include "pagetable_manager.h"
+
+#include <string.h>
+
 #include "pageframe_allocator.h"
-#include "memory.h"
+
 
 #define PAGE_BIT_P_PRESENT (1<<0)
 #define PAGE_BIT_RW_WRITABLE (1<<1)

@@ -5,7 +5,7 @@
 #include "types.h"
 #include "terminal.h"
 #include "font.h"
-#include "string.h"
+#include "stdio.h"
 #include "memory.h"
 #include "paging.h"
 #include "pageframe_allocator.h"
@@ -85,10 +85,10 @@ void setup_acpi(boot_info_t *boot_info)
 
 void display_banner(boot_info_t *boot_info)
 {
-    terminal_println("Welcome to theOS!");
-    terminal_nprintln(3, "Memory Free: ", int_to_string(pageframe_memory_free() / 1024, terminal_buffer), "KB"); 
-    terminal_nprintln(3, "Memory Used: ", int_to_string(pageframe_memory_used() / 1024, terminal_buffer), "KB"); 
-    terminal_nprintln(3, "Memory Reserved: ", int_to_string(pageframe_memory_reserved() / 1024, terminal_buffer), "KB"); 
+    printf("Welcome to theOS!!\n");
+    printf("Memory Free: %u\n", (pageframe_memory_free() / 1024));
+    printf("Memory Used: %u\n", (pageframe_memory_used() / 1024));
+    printf("Memory Rsvd: %u\n", (pageframe_memory_used() / 1024));
 }
 
 void loop()

@@ -6,7 +6,6 @@
 #include "math.h"
 
 #include "terminal.h"
-#include "string.h"
 
 #define WAIT_TIMEOUT 100000
 #define MAX_PACKETS 100

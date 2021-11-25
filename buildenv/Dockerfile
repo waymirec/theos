@@ -11,7 +11,7 @@ RUN set -x \
 	&& apt-get update \
 	&& apt-get install -y wget gcc libgmp3-dev libmpfr-dev libisl-dev \
 		libcloog-isl-dev libmpc-dev texinfo bison flex make bzip2 patch \
-		build-essential
+		build-essential libtool
 
 # Pull binutils and gcc source code
 RUN set -x \
@@ -50,6 +50,8 @@ RUN apt-get install -y mtools
 RUN apt-get install -y vim
 
 VOLUME /root/env
+VOLUME /root/cc
+
 WORKDIR /root/env
 
 CMD ["/bin/bash"]
