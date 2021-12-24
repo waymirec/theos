@@ -1,6 +1,6 @@
 #include "heap.h"
 
-#include "kernel.h"
+#include "globals.h"
 #include "pagetable_manager.h"
 #include "pageframe_allocator.h"
 #include "paging.h"
@@ -61,6 +61,18 @@ void* heap_alloc(size_t size)
 
     __expand(size);
     return heap_alloc(size);
+}
+
+void* heap_calloc(size_t size)
+{
+    void *alloc = heap_alloc(size);
+    memzero(alloc, size);
+    return alloc;
+}
+
+void* heap_realloc(void *ptr, size_t size)
+{
+
 }
 
 void heap_free(void *address)

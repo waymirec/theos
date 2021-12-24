@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 typedef struct {
     unsigned char magic[2];
     unsigned char mode;

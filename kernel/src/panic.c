@@ -1,10 +1,13 @@
 #include "panic.h"
-#include "terminal.h"
+
+#include <stdio.h>
+
+#include "globals.h"
+#include "tty.h"
 
 void panic(char *message)
 {
-    terminal_clear(0x00000000);
-    terminal_println("Kernel Panic!!");
-    terminal_newline();
-    terminal_println(message);
+    tty_clear(g_tty);
+    printf("Kernel Panic!!\n");
+    printf(message);
 }

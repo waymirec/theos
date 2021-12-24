@@ -1,7 +1,6 @@
 #include "idt.h"
 #include "interrupt_handlers.h"
 #include "pageframe_allocator.h"
-#include "terminal.h"
 #include "string.h"
 
 idt_descriptor_t _idtr;

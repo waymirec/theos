@@ -2,7 +2,8 @@
 
 #include <stdbool.h>
 
-#include "terminal.h"
+#include "globals.h"
+#include "tty.h"
 #include "string.h"
 
 #define MAX_PRINTABLE_SCANCODE 57
@@ -50,14 +51,14 @@ void kbd_handle_input(uint8_t scancode)
     bool caps = __is_capitalized();
 
     if (scancode == BSPACE_PRESSED) {
-        terminal_backspace();
+        tty_backspace(g_tty);
         return;
     }
 
     char ascii = __translate_scancode(scancode, caps);
     if (ascii == 0) return;
 
-    terminal_put_char(ascii);
+    tty_putc(g_tty, ascii);
 }
 
 static void __process_control_keys(uint8_t scancode)

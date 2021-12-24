@@ -2,10 +2,9 @@
 
 #include <stdio.h>
 
-#include "kernel.h"
+#include "globals.h"
 #include "ahci.h"
 #include "heap.h"
-#include "terminal.h"
 
 #define BUS_DEVICE_CNT 32
 #define DEVICE_FUNS_CNT 8
@@ -73,9 +72,8 @@ const char* pci_vendor_name(uint16_t vendor_id)
             return "NVIDIA Corporation";
         default:
         {
-            sprintf(buf, "%x/16", vendor_id);
+            sprintf(buf, "%x", vendor_id);
             return buf;
-            //return uint16_to_hex(vendor_id, buf);
         }
     }
 }
@@ -97,9 +95,8 @@ const char* pci_device_name(uint16_t vendor_id, uint16_t device_id)
             }
         }
     }
-    sprintf(buf, "%x/16", device_id);
+    sprintf(buf, "%x", device_id);
     return buf;
-    //return uint16_to_hex(device_id, buf);
 }
 
 const char* pci_subclass_name(uint8_t class_code, uint8_t subclass_code)
@@ -118,9 +115,8 @@ const char* pci_subclass_name(uint8_t class_code, uint8_t subclass_code)
             return __serial_bus_controller_subclass(subclass_code);
     }
 
-    sprintf(buf, "%x/8", subclass_code);
+    sprintf(buf, "%x", subclass_code);
     return buf;
-    //return uint8_to_hex(subclass_code, buf);
 }
 
 const char* pci_program_iface(uint8_t class_code, uint8_t subclass_code, uint8_t program_iface)
@@ -170,7 +166,6 @@ const char* pci_program_iface(uint8_t class_code, uint8_t subclass_code, uint8_t
 
     sprintf(buf, "%x/8", program_iface);
     return buf;
-    //return uint8_to_hex(program_iface, buf);
 }
 
 static void __enumerate_bus(uint64_t base_address, uint64_t bus)
@@ -207,12 +202,15 @@ static void __enumerate_function(uint64_t device_address, uint64_t function)
     if (dev_hdr->device_id == 0) return;
     if (dev_hdr->device_id == 0xFFFF) return;
 
-    //char buf[128];
-    //terminal_print(pci_vendor_name(dev_hdr->vendor_id));
-    //terminal_nprint(2, " :: ", pci_device_name(dev_hdr->vendor_id, dev_hdr->device_id));
-    //terminal_nprint(2, " :: ", pci_device_class(dev_hdr->class_code));
-    //terminal_nprint(2, " :: ", pci_subclass_name(dev_hdr->class_code, dev_hdr->subclass));
-    //terminal_nprintln(2, " :: ", pci_program_iface(dev_hdr->class_code, dev_hdr->subclass, dev_hdr->prog_iface));
+    /*
+    char buf[128];
+    printf("Vendor: %s, Device Name: %s, Device Class: %s (%s), Iface: %s\n", 
+        pci_vendor_name(dev_hdr->vendor_id),
+        pci_device_name(dev_hdr->vendor_id, dev_hdr->device_id),
+        pci_device_class(dev_hdr->class_code),
+        pci_subclass_name(dev_hdr->class_code, dev_hdr->subclass),
+        pci_program_iface(dev_hdr->class_code, dev_hdr->subclass, dev_hdr->prog_iface));
+    */
 
     if (dev_hdr->class_code == 0x01 && dev_hdr->subclass == 0x06 && dev_hdr->prog_iface == 0x01) {
         ahci_driver_t *ahci_driver = heap_alloc(sizeof(ahci_driver_t));
@@ -242,9 +240,8 @@ static const char* __mass_storage_controller_subclass(uint8_t code)
         case 0x80:
             return "Other";
         default:
-            sprintf(buf, "%x/8", code);
+            sprintf(buf, "%x", code);
             return buf;
-            //return uint8_to_hex(code, buf);
     }
 }
 
@@ -274,9 +271,8 @@ static const char* __serial_bus_controller_subclass(uint8_t code)
         case 0x80:
             return "SerialBusController - Other";
         default:
-            sprintf(buf, "%x/8", code);
+            sprintf(buf, "%x", code);
             return buf;
-            //return uint8_to_hex(code, buf);
     }
 }
 
@@ -308,8 +304,7 @@ static const char* __bridge_device_subclass(uint8_t code)
         case 0x80:
             return "Other";
         default:
-            sprintf(buf, "%x/8", code);
+            sprintf(buf, "%x", code);
             return buf;
-            //return uint8_to_hex(code, buf);
     }
 }

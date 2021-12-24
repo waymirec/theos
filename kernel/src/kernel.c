@@ -3,7 +3,8 @@
 #include <stdint.h>
 
 #include "types.h"
-#include "terminal.h"
+#include "globals.h"
+#include "tty.h"
 #include "font.h"
 #include "stdio.h"
 #include "memory.h"
@@ -30,7 +31,9 @@ void display_banner(boot_info_t *boot_info);
 void loop();
 
 pml4_t *g_pml4 = NULL;
-char terminal_buffer[128];
+
+tty_t tty;
+tty_t *g_tty = &tty;
 
 void _start(boot_info_t *boot_info)
 {
@@ -58,7 +61,7 @@ void initialize_kernel(boot_info_t *boot_info)
 
 void setup_terminal(boot_info_t *boot_info)
 {
-    terminal_init(boot_info->framebuffer, boot_info->font);
+    tty_init(g_tty, boot_info->framebuffer, boot_info->font);
 }
 
 void setup_paging(boot_info_t *boot_info)

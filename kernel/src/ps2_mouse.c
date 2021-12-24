@@ -5,7 +5,8 @@
 #include "pageframe_allocator.h"
 #include "math.h"
 
-#include "terminal.h"
+#include "globals.h"
+#include "tty.h"
 
 #define WAIT_TIMEOUT 100000
 #define MAX_PACKETS 100
@@ -46,8 +47,8 @@ static void __move_mouse(mouse_data);
 
 void ps2_mouse_init(void)
 {
-    _vert_res = terminal_vertical_resolution();
-    _horiz_res = terminal_horizontal_resolution();
+    _vert_res = g_tty->framebuffer->vertical_resolution;
+    _horiz_res = g_tty->framebuffer->horizontal_resolution;
 
     uint8_t val;
 
@@ -92,10 +93,11 @@ void ps2_mouse_handle_input()
     mouse_data data = { .bytes[0] = _bytes[0], .bytes[1] = _bytes[1], .bytes[2] = _bytes[2] };
     
     if (_mouse_drawn)
-        terminal_clear_overlay(_mouse_cursor_overlay, &_mouse_pos);
+        tty_clear_overlay(g_tty, _mouse_cursor_overlay, &_mouse_pos);
 
     __move_mouse(data);
-    terminal_draw_overlay(_mouse_cursor_overlay, &_mouse_pos, 0xFF00FFFF);
+    tty_draw_overlay(g_tty, _mouse_cursor_overlay, &_mouse_pos, 0xFF00FFFF);
+
     _mouse_drawn = true;
     
     _byte_count = 0;

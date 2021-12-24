@@ -1,11 +1,10 @@
 #include "ahci.h"
 #include "pagetable_manager.h"
 #include "pageframe_allocator.h"
-#include "kernel.h"
+#include "globals.h"
 #include "heap.h"
 #include "memory.h"
 
-#include "terminal.h"
 #include "string.h"
 
 #define MAX_READ_SPIN           1000000
@@ -48,14 +47,14 @@ void ahci_init(ahci_driver_t *driver, pci_device_hdr_t *pci_base_address)
         __configure_port(port->hba_port);
 
         port->buffer = (uint8_t *)pageframe_request();
-        memset(port->buffer, 0, PAGE_SIZE);
+        memzero(port->buffer, PAGE_SIZE);
 
         ahci_read(port, 0, 4, port->buffer);
         
-        //for (int i = 0; i < 1024; i++) {
-        //    terminal_put_char(port->buffer[i]);
-        //}
-        //terminal_newline();
+        for (int i = 0; i < 1024; i++) {
+            tty_putc(g_tty, port->buffer[i]);
+        }
+        tty_newline(g_tty);
     }
 }
 

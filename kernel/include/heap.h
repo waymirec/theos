@@ -13,4 +13,5 @@ struct heap_hdr_t {
 
 void heap_init(void *address, size_t pages);
 void* heap_alloc(size_t size);
+void* heap_calloc(size_t size);
 void heap_free(void *address);

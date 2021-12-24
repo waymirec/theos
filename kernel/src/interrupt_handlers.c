@@ -11,7 +11,6 @@
 #include "ps2_keyboard.h" // todo: refactor this
 #include "ps2_mouse.h"
 #include "pit.h"
-#include "terminal.h"
 #include "string.h"
 
 __attribute__((interrupt)) void int_handler_pagefault(struct interrupt_frame *frame)
